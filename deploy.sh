@@ -4,8 +4,7 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 cd "$SCRIPT_DIR"
 
-git pull
-docker compose pull
+docker compose pull web
 docker compose up -d --remove-orphans
 
 echo "Deploy complete."
