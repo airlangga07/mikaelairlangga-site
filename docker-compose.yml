@@ -1,6 +1,6 @@
 services:
   web:
-    image: ghcr.io/airlangga07/mikaelairlangga-site:latest
+    image: ghcr.io/airlangga07/mikaelairlangga-site:${WEB_TAG:-latest}
     restart: unless-stopped
     ports:
       - "3001:3000"
