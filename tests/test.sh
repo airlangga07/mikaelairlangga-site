@@ -4,20 +4,35 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 cd "$SCRIPT_DIR/.."
 
+# Usage: test.sh [image]
+# If an image is provided, run tests against that image directly.
+# Otherwise, use docker compose (volume-mount mode).
+IMAGE="${1:-}"
+
 PASS=0
 FAIL=0
 
 pass() { echo "  PASS: $1"; PASS=$((PASS+1)); }
 fail() { echo "  FAIL: $1"; FAIL=$((FAIL+1)); }
 
+CONTAINER_NAME="mikaelairlangga-test-$$"
+
 cleanup() {
-  docker compose -f docker-compose.yml down --remove-orphans -t 5 >/dev/null 2>&1 || true
+  if [[ -n "$IMAGE" ]]; then
+    docker rm -f "$CONTAINER_NAME" >/dev/null 2>&1 || true
+  else
+    docker compose -f docker-compose.yml down --remove-orphans -t 5 >/dev/null 2>&1 || true
+  fi
 }
 trap cleanup EXIT
 
-echo "==> Starting containers (web only)..."
-# Start only the web container — cloudflared needs a real token
-docker compose up -d web >/dev/null 2>&1
+if [[ -n "$IMAGE" ]]; then
+  echo "==> Starting container from image: $IMAGE"
+  docker run -d --name "$CONTAINER_NAME" -p 3001:3000 "$IMAGE" >/dev/null
+else
+  echo "==> Starting containers (web only)..."
+  docker compose up -d web >/dev/null 2>&1
+fi
 
 echo "==> Waiting for nginx..."
 for i in $(seq 1 20); do
