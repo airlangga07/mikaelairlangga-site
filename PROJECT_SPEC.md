@@ -2,7 +2,7 @@
 
 ## Overview
 
-Personal static website for **mikaelairlangga.com**, self-hosted on a Raspberry Pi 5 and made public via Cloudflare Tunnel. No database. No backend logic. Pure static HTML/CSS/JS served by nginx.
+Personal static website for **mikaelairlangga.com**, self-hosted on a **Raspberry Pi 3B+ (`rpi3`)** and made public via Cloudflare Tunnel. No database. No backend logic. Pure static HTML/CSS/JS served by nginx. (Migrated from the Pi 5 to the 3B+ production edge on 2026-06-30.)
 
 ## Goals
 
@@ -18,7 +18,7 @@ Personal static website for **mikaelairlangga.com**, self-hosted on a Raspberry 
 | Web server       | nginx:alpine               |
 | Tunnel           | cloudflare/cloudflared     |
 | Container runtime| Docker Compose             |
-| Host             | Raspberry Pi 5 (arm64)     |
+| Host             | Raspberry Pi 3B+ (`rpi3`, arm64) |
 
 ## Architecture
 
@@ -28,10 +28,13 @@ Internet → Cloudflare Tunnel → cloudflared → nginx (port 3000) → static 
 
 ## Containers
 
-| Service        | Image                      | Internal port |
-|----------------|----------------------------|---------------|
-| `web`          | nginx:alpine               | 3000          |
-| `cloudflared`  | cloudflare/cloudflared     | —             |
+| Service        | Image                                          | Internal port |
+|----------------|------------------------------------------------|---------------|
+| `web`          | `ghcr.io/airlangga07/mikaelairlangga-site` (built `FROM nginx:alpine`) | 3000          |
+| `cloudflared`  | cloudflare/cloudflared                         | —             |
+
+The static site is **baked into** the `web` image at build time (see `Dockerfile`) — CI on
+GitHub Actions builds and pushes it to GHCR; the Pi pulls the image (it does not build).
 
 ## Endpoints
 
@@ -50,13 +53,19 @@ Internet → Cloudflare Tunnel → cloudflared → nginx (port 3000) → static 
 
 ```
 mikaelairlangga-site/
-├── .env                    # not committed — secrets
+├── .env                    # not committed — secrets (CLOUDFLARE_TUNNEL_TOKEN, DISCORD_WEBHOOK_URL)
 ├── .env.example            # committed — documents required vars
 ├── .gitignore
 ├── CLAUDE.md               # instructions for Claude Code
 ├── PROJECT_SPEC.md         # this file
-├── deploy.sh               # git pull + docker compose up -d on the Pi
-├── docker-compose.yml
+├── Dockerfile              # bakes ./site into nginx:alpine
+├── deploy.sh               # pull the GHCR image + docker compose up -d on the Pi
+├── docker-compose.yml      # web (GHCR image) + cloudflared sidecar
+├── healthcheck.sh          # off-box uptime check (Discord webhook) — runs on rpi5, not here
+├── .github/workflows/
+│   └── ci.yml              # build & push multi-arch image to ghcr.io on push/tag
+├── docs/
+│   └── uptime-monitoring.md
 ├── nginx/
 │   └── default.conf        # nginx: serves ./site, healthz stub
 ├── site/
@@ -67,18 +76,24 @@ mikaelairlangga-site/
 
 ## Deployment (on the Pi)
 
+The site ships as a **GHCR image**, not source — CI builds it on push to `main` (`sha-<shortsha>`)
+and on `vX.Y.Z` tags. On `rpi3` the running image is **pinned by digest** in the host's
+`docker-compose.yml`; deploy by bumping the digest (or a semver tag) deliberately:
+
 ```sh
-git clone git@github.com:airlangga07/mikaelairlangga-site.git ~/apps/mikaelairlangga-site
 cd ~/apps/mikaelairlangga-site
-cp .env.example .env
-# fill in CLOUDFLARE_TUNNEL_TOKEN
-./deploy.sh
+docker compose pull web
+docker compose up -d web        # verify, then:
+docker compose up -d cloudflared
 ```
+
+First-time setup only needs `.env` (from `.env.example`) with `CLOUDFLARE_TUNNEL_TOKEN` and
+`DISCORD_WEBHOOK_URL`, plus GHCR pull auth in `~/.docker/config.json`.
 
 ## Verification
 
 ```sh
 curl https://mikaelairlangga.com           # returns HTML
 curl https://mikaelairlangga.com/healthz   # returns {"status":"ok"}
-ssh rpi5 "docker compose -f ~/apps/mikaelairlangga-site/docker-compose.yml ps"
+ssh rpi3 "docker compose -f ~/apps/mikaelairlangga-site/docker-compose.yml ps"
 ```

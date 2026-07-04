@@ -1,7 +1,7 @@
 # CLAUDE.md — mikaelairlangga-site
 
 ## What this is
-Personal static site for mikaelairlangga.com. Served by nginx in Docker, tunnelled to the internet via Cloudflare. Runs on a Raspberry Pi 5. No backend, no database.
+Personal static site for mikaelairlangga.com. Served by nginx in Docker, tunnelled to the internet via Cloudflare. Runs on a **Raspberry Pi 3B+ (`rpi3`)**, the homelab production edge — migrated from the Pi 5 on 2026-06-30. No backend, no database.
 
 ## Stack
 - nginx:alpine — serves static files from `./site/`, port 3000
@@ -31,12 +31,19 @@ bash tests/test.sh
 Spins up containers, curls endpoints, asserts responses, tears down.
 
 ## Deploying (on the Pi)
+The site is baked into a **private GHCR image by CI** — it is not `git pull`ed onto the host.
+On `rpi3` the running image is **pinned by digest** in `docker-compose.yml`; deploy by updating
+the digest (or a semver tag) deliberately, then:
 ```sh
 cd ~/apps/mikaelairlangga-site
-git pull
-./deploy.sh
+docker compose pull web
+docker compose up -d web        # verify, then:
+docker compose up -d cloudflared
 ```
-SSH config and Pi details → Notion Infra DB: https://www.notion.so/c9728de99aba401b8d3b70688b561bfb
+Host / SSH / infra details live in the **Obsidian vault** → Infrastructure & Services →
+`mikaelairlangga-site` (this replaced the old Notion Infra DB).
 
 ## Infra reference
-Before touching docker-compose, .env, or anything network-related — check the Notion Infrastructure & Services DB above for current Pi status, SSH key location, and active services.
+Before touching docker-compose, .env, or anything network-related — check the **Obsidian vault**
+(Infrastructure & Services → `mikaelairlangga-site`, and the `Mikael Airlangga Site` project
+notes) for current host status, SSH access, and active services. (Replaced the old Notion DB.)
