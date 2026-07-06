@@ -32,12 +32,14 @@ Spins up containers, curls endpoints, asserts responses, tears down.
 
 ## Deploying (on the Pi)
 The site is baked into a **private GHCR image by CI** — it is not `git pull`ed onto the host.
-On `rpi3` the running image is **pinned by digest** in `docker-compose.yml`; deploy by updating
-the digest (or a semver tag) deliberately, then:
+On `rpi3` the running image is **pinned by digest** (via `WEB_IMAGE` in `.env`, or the default
+in `docker-compose.yml`); deploy a specific build with the helper — it sets `WEB_IMAGE`, pulls,
+recreates, and prints the running digest to pin:
 ```sh
 cd ~/apps/mikaelairlangga-site
-docker compose pull web
-docker compose up -d web        # verify, then:
+./deploy.sh v1.1.0     # a semver tag, or a full ...@sha256:<digest> ref (digest preferred)
+# equivalently, by hand:
+docker compose pull web && docker compose up -d web   # verify, then:
 docker compose up -d cloudflared
 ```
 Host / SSH / infra details live in the **Obsidian vault** → Infrastructure & Services →
