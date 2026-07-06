@@ -1,6 +1,9 @@
 services:
   web:
-    image: ghcr.io/airlangga07/mikaelairlangga-site:${WEB_TAG:-latest}
+    # Prod runs an immutable, digest-pinned image. Override per-deploy with WEB_IMAGE in
+    # .env (a tag or a full digest ref); bump the default below when cutting a release.
+    # `deploy.sh` prints the running digest so you can pin it. See PROJECT_SPEC.md.
+    image: ${WEB_IMAGE:-ghcr.io/airlangga07/mikaelairlangga-site@sha256:4ad5aa762f0e13d9490d36fc77d39280d3c94a18a757421f6ba037818474ec86}
     restart: unless-stopped
     ports:
       - "3001:3000"

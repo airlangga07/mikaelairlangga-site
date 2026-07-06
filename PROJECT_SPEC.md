@@ -77,18 +77,20 @@ mikaelairlangga-site/
 ## Deployment (on the Pi)
 
 The site ships as a **GHCR image**, not source — CI builds it on push to `main` (`sha-<shortsha>`)
-and on `vX.Y.Z` tags. On `rpi3` the running image is **pinned by digest** in the host's
-`docker-compose.yml`; deploy by bumping the digest (or a semver tag) deliberately:
+and on `vX.Y.Z` tags. On `rpi3` the running image is **pinned by digest** — via `WEB_IMAGE` in
+`.env` or the default in `docker-compose.yml`. Deploy a specific build with `deploy.sh`, which
+sets `WEB_IMAGE`, pulls, recreates, and prints the running digest so you can pin it:
 
 ```sh
 cd ~/apps/mikaelairlangga-site
-docker compose pull web
-docker compose up -d web        # verify, then:
-docker compose up -d cloudflared
+./deploy.sh v1.1.0     # a semver tag, or a full ...@sha256:<digest> ref (digest preferred)
+# by hand: docker compose pull web && docker compose up -d web && docker compose up -d cloudflared
 ```
 
-First-time setup only needs `.env` (from `.env.example`) with `CLOUDFLARE_TUNNEL_TOKEN` and
-`DISCORD_WEBHOOK_URL`, plus GHCR pull auth in `~/.docker/config.json`.
+Pinning by **digest** (not a moving tag) keeps prod immutable; bump the pinned default in
+`docker-compose.yml` (or set `WEB_IMAGE`) deliberately per release. First-time setup only needs
+`.env` (from `.env.example`) with `CLOUDFLARE_TUNNEL_TOKEN` and `DISCORD_WEBHOOK_URL`, plus GHCR
+pull auth in `~/.docker/config.json`.
 
 ## Verification
 
