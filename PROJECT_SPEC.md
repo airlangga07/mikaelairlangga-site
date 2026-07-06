@@ -79,7 +79,7 @@ mikaelairlangga-site/
 The site ships as a **GHCR image**, not source — CI builds it on push to `main` (`sha-<shortsha>`)
 and on `vX.Y.Z` tags. On `rpi3` the running image is **pinned by digest** — via `WEB_IMAGE` in
 `.env` or the default in `docker-compose.yml`. Deploy a specific build with `deploy.sh`, which
-sets `WEB_IMAGE`, pulls, recreates, and prints the running digest so you can pin it:
+sets `WEB_IMAGE`, pulls, recreates, and pins the resolved digest back into `.env`:
 
 ```sh
 cd ~/apps/mikaelairlangga-site

@@ -34,7 +34,7 @@ Spins up containers, curls endpoints, asserts responses, tears down.
 The site is baked into a **private GHCR image by CI** — it is not `git pull`ed onto the host.
 On `rpi3` the running image is **pinned by digest** (via `WEB_IMAGE` in `.env`, or the default
 in `docker-compose.yml`); deploy a specific build with the helper — it sets `WEB_IMAGE`, pulls,
-recreates, and prints the running digest to pin:
+recreates, and pins the resolved digest back into `.env`:
 ```sh
 cd ~/apps/mikaelairlangga-site
 ./deploy.sh v1.1.0     # a semver tag, or a full ...@sha256:<digest> ref (digest preferred)
