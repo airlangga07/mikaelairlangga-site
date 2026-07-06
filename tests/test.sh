@@ -63,7 +63,14 @@ STATUS=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:3001/)
 BODY=$(curl -s http://localhost:3001/)
 [[ "$BODY" == *"Mikael Airlangga"* ]] && pass "GET / body contains 'Mikael Airlangga'" || fail "GET / body missing 'Mikael Airlangga'"
 
-# 6. unknown path returns 404
+# 6. root has no external resource fetches
+EXTERNAL_FETCHES=$(
+  printf "%s" "$BODY" |
+    grep -Eio '(<script[^>]+src=["'\'']?https?://|<link[^>]+href=["'\'']?https?://|@import[^;]+https?://|url\(["'\'']?https?://)' || true
+)
+[[ -z "$EXTERNAL_FETCHES" ]] && pass "GET / has no external resource fetches" || fail "GET / external resource fetches found: $EXTERNAL_FETCHES"
+
+# 7. unknown path returns 404
 STATUS=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:3001/does-not-exist)
 [[ "$STATUS" == "404" ]] && pass "GET /does-not-exist → 404" || fail "GET /does-not-exist → $STATUS (expected 404)"
 
