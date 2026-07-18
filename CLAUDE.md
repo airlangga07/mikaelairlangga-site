@@ -49,3 +49,23 @@ Host / SSH / infra details live in the **Obsidian vault** → Infrastructure & S
 Before touching docker-compose, .env, or anything network-related — check the **Obsidian vault**
 (Infrastructure & Services → `mikaelairlangga-site`, and the `Mikael Airlangga Site` project
 notes) for current host status, SSH access, and active services. (Replaced the old Notion DB.)
+
+## Engineering skills
+
+Matt Pocock's engineering skill set is installed globally for Claude Code
+(`~/.claude/skills/`), available in this repo without any local setup. This is a small static
+site with no application modules, so only part of the set applies:
+
+- `diagnosing-bugs` — structured repro → minimise → hypothesise → instrument → fix loop for a
+  failing deploy or a `tests/test.sh` failure.
+- `research` — background investigation against primary sources (nginx/Cloudflare Tunnel docs),
+  written up as a cited file.
+- `implement` — consumes a GitHub issue end-to-end, closes with the dual review (`code-review` + a Codex cross-review).
+
+`domain-modeling`, `codebase-design`, and `tdd` are less relevant here — no application
+modules, and `tests/test.sh` is a thin smoke test rather than a red-green-refactor suite.
+
+**`/code-review` in this repo is Claude Code's built-in code-review skill**, not Matt's
+same-named one — a deliberate choice, not an accident. These skills are Claude
+Code-specific (`~/.claude/skills/`); the shared rules both agents follow — including the dual
+review every implementation change closes with — live in `AGENTS.md`.
